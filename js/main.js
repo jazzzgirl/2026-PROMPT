@@ -100,7 +100,7 @@ function renderTask(){
   const p = practice();
   const items = p.problem.items.length ? `<ol>${p.problem.items.map(t => `<li>${esc(t)}</li>`).join("")}</ol>` : "";
   const goal = p.id === "free" ? "" : '<p class="goal">위 문제를 해결하기 위한 프롬프트를 PROMPT 6요소에 맞춰 작성해 보세요.</p>';
-  const note = p.id === "analyzer" ? '<p style="margin-top:10px;font-size:15px">P(목적)에는 건강 관리 리포트 생성기 코드를 붙여넣겠다는 내용과, 새 코드 셀에 작성해 달라는 요청을 함께 적어 보세요.</p>' : "";
+  const note = p.note ? `<p style="margin-top:10px;font-size:15px">${esc(p.note)}</p>` : "";
   taskEl.innerHTML = `<h3>${esc(p.name)}</h3><p>${esc(p.problem.intro)}</p>${items}${note}${goal}`;
   loadBtn.hidden = !p.example;
   loadBtn.textContent = p.example ? `${p.name} 예시 넣기` : "";
