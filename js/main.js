@@ -52,9 +52,28 @@ document.getElementById("els").innerHTML = EL.map(e =>
      <p class="ex">${esc(e.ex)}</p>
    </article>`).join("");
 
+/* 후속 질문 목록: 질문마다 복사 버튼을 단다 */
+function followupHTML(list){
+  return `<ul class="fu">${list.map((q, i) =>
+    `<li><span>${esc(q)}</span><button class="btn ghost sm" type="button" data-i="${i}">복사</button></li>`).join("")}</ul>`;
+}
+function bindFollowups(host, list){
+  host.querySelectorAll(".fu button").forEach(b =>
+    b.addEventListener("click", () => copy(list[+b.dataset.i])));
+}
+function renderSideFollowups(id, list){
+  const host = document.getElementById(id);
+  if(!host) return;
+  host.innerHTML = `<h3 class="fu-title">코드를 읽은 뒤 물어볼 질문</h3>
+    <p>코드를 실행하고 주석을 읽은 다음, 이해가 안 되는 부분을 이렇게 물어보세요.</p>${followupHTML(list)}`;
+  bindFollowups(host, list);
+}
+
 renderBlock("goodPrompt", "좋은 프롬프트", GOOD, "compact");
 renderBlock("healthPrompt", "예제 프롬프트", HEALTH);
 renderBlock("analyzerPrompt", "예제 프롬프트", ANALYZER);
+renderSideFollowups("healthFU", HEALTH_FU);
+renderSideFollowups("analyzerFU", ANALYZER_FU);
 
 /* ---------- 프롬프트 만들기 ---------- */
 const STORE = "prompt-builder-v2";
@@ -73,6 +92,7 @@ const builtBody = document.getElementById("builtBody");
 const dots = document.getElementById("dots");
 const progressText = document.getElementById("progressText");
 const loadBtn = document.getElementById("loadExample");
+const afterEl = document.getElementById("after");
 
 form.innerHTML = EL.map(e =>
   `<div class="field" data-k="${e.k}">
@@ -102,8 +122,26 @@ function renderTask(){
   const goal = p.id === "free" ? "" : '<p class="goal">위 문제를 해결하기 위한 프롬프트를 PROMPT 6요소에 맞춰 작성해 보세요.</p>';
   const note = p.note ? `<p style="margin-top:10px;font-size:15px">${esc(p.note)}</p>` : "";
   taskEl.innerHTML = `<h3>${esc(p.name)}</h3><p>${esc(p.problem.intro)}</p>${items}${note}${goal}`;
+  renderAfter(p);
   loadBtn.hidden = !p.example;
   loadBtn.textContent = p.example ? `${p.name} 예시 넣기` : "";
+}
+
+/* 코드를 받은 다음에 할 일 + 이 탭의 후속 질문 예시 */
+function renderAfter(p){
+  const list = p.followups || [];
+  afterEl.innerHTML = `
+    <h3>코드를 받은 다음에는</h3>
+    <ol class="steps">
+      <li>코드를 실행하고 T에 적은 값으로 결과가 맞는지 비교합니다.</li>
+      <li>주석과 실행 순서 요약을 읽으며 이해가 안 되는 줄에 표시합니다.</li>
+      <li>표시한 줄을 그대로 인용해서 AI에게 후속 질문을 합니다.</li>
+      <li>답을 읽은 뒤 코드를 다시 실행해 이해한 내용을 확인합니다.</li>
+    </ol>
+    ${list.length ? `<h4>${p.id === "free" ? "후속 질문 틀" : esc(p.name) + " 후속 질문 예시"}</h4>
+    <p class="fu-hint">질문은 코드를 읽은 뒤에 떠오른 것을 쓰는 것이 가장 좋습니다. 무엇을 물어야 할지 막막할 때 참고하세요.</p>
+    ${followupHTML(list)}` : ""}`;
+  bindFollowups(afterEl, list);
 }
 
 function update(){

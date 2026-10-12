@@ -968,3 +968,86 @@ footer strong {
     width: 100%;
   }
 }
+
+/* 코드를 받은 다음: 단계 안내와 후속 질문 */
+.after {
+  margin-top: 40px;
+  padding: 28px 30px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+}
+
+.after h3 {
+  font-size: 19px;
+  margin-bottom: 12px;
+}
+
+.after h4 {
+  margin: 26px 0 6px;
+  font-size: 16px;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--ink-2);
+}
+
+.steps li {
+  margin-bottom: 4px;
+}
+
+.fu-hint {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.fu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.fu li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  background: var(--panel);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.fu li span::before {
+  content: "Q. ";
+  font-weight: 800;
+  color: var(--c-p2);
+}
+
+.fu .btn {
+  flex-shrink: 0;
+}
+
+.side .fu-title {
+  margin-top: 28px;
+}
+
+.side .fu {
+  padding: 0;
+}
+
+.side .fu li {
+  font-size: 14px;
+  padding: 9px 10px 9px 12px;
+}
+
+@media (max-width: 640px) {
+  .after {
+    padding: 20px;
+  }
+}
