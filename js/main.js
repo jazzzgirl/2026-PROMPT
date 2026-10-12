@@ -72,8 +72,8 @@ function renderSideFollowups(id, list){
 renderBlock("goodPrompt", "좋은 프롬프트", GOOD, "compact");
 renderBlock("healthPrompt", "예제 프롬프트", HEALTH);
 renderBlock("analyzerPrompt", "예제 프롬프트", ANALYZER);
-renderSideFollowups("healthFU", HEALTH_FU);
-renderSideFollowups("analyzerFU", ANALYZER_FU);
+renderSideFollowups("healthFU", HEALTH_FU.concat(COMMON_FU));
+renderSideFollowups("analyzerFU", ANALYZER_FU.concat(COMMON_FU));
 
 /* ---------- 프롬프트 만들기 ---------- */
 const STORE = "prompt-builder-v2";
@@ -129,14 +129,14 @@ function renderTask(){
 
 /* 코드를 받은 다음에 할 일 + 이 탭의 후속 질문 예시 */
 function renderAfter(p){
-  const list = p.followups || [];
+  const list = (p.followups || []).concat(COMMON_FU);
   afterEl.innerHTML = `
     <h3>코드를 받은 다음에는</h3>
     <ol class="steps">
-      <li>코드를 실행하고 T에 적은 값으로 결과가 맞는지 비교합니다.</li>
+      <li>O에 적은 실행 화면 예시를 그대로 입력해 결과가 같은지 직접 확인합니다.</li>
+      <li>AI가 제안한 테스트 표의 값을 차례로 넣어 결과를 비교하고, 기대 결과 중 하나 이상은 계산기로 직접 확인합니다.</li>
       <li>주석과 실행 순서 요약을 읽으며 이해가 안 되는 줄에 표시합니다.</li>
-      <li>표시한 줄을 그대로 인용해서 AI에게 후속 질문을 합니다.</li>
-      <li>답을 읽은 뒤 코드를 다시 실행해 이해한 내용을 확인합니다.</li>
+      <li>표시한 줄이나 결과가 다른 부분을 그대로 인용해서 AI에게 후속 질문을 합니다.</li>
     </ol>
     ${list.length ? `<h4>${p.id === "free" ? "후속 질문 틀" : esc(p.name) + " 후속 질문 예시"}</h4>
     <p class="fu-hint">질문은 코드를 읽은 뒤에 떠오른 것을 쓰는 것이 가장 좋습니다. 무엇을 물어야 할지 막막할 때 참고하세요.</p>
