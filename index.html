@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PROMPT 6요소로 파이썬 코딩 프롬프트 쓰기</title>
+<meta name="description" content="생성형 AI로 파이썬 프로그램을 만들 때 필요한 프롬프트 6요소(P·R·O·M·P·T)를 배우고 직접 연습하는 페이지입니다.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav" aria-label="주요 메뉴">
+  <div class="wrap">
+    <a href="#prompt" class="brand" aria-label="PROMPT 처음으로">
+      <span data-k="p1">P</span><span data-k="r">R</span><span data-k="o">O</span><span data-k="m">M</span><span data-k="p2">P</span><span data-k="t">T</span>
+    </a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="메뉴 열기">
+      <span></span><span></span><span></span>
+    </button>
+    <ul id="navMenu">
+      <li class="menu-head" aria-hidden="true">메뉴</li>
+      <li><a class="link" data-k="p1" href="#prompt">PROMPT</a></li>
+      <li><a class="link" data-k="r" href="#priority">우선순위</a></li>
+      <li><a class="link" data-k="o" href="#health">건강 관리 리포트 생성기</a></li>
+      <li><a class="link" data-k="m" href="#analyzer">스마트 건강 분석기</a></li>
+      <li><a class="link" data-k="p2" href="#builder">프롬프트 만들기</a></li>
+    </ul>
+  </div>
+  <div class="nav-backdrop" id="navBackdrop"></div>
+</nav>
+
+<main>
+<!-- HERO / PROMPT -->
+<section id="prompt" class="hero">
+  <div class="wrap">
+    <h1>AI에게 파이썬 코드를 부탁할 때, 이 여섯 가지를 차례대로 채우세요</h1>
+    <p class="lead">생성형 AI는 내가 적어준 만큼만 알아듣습니다. 여섯 글자의 순서대로 프롬프트를 쓰면 처음 배우는 학생도 원하는 프로그램을 정확하게 얻을 수 있습니다.</p>
+
+    <div class="letters" id="letters"></div>
+    <div class="els" id="els"></div>
+
+    <div class="remember">
+      무엇을(<span data-k="p1">P</span>) · 어떤 기능으로(<span data-k="r">R</span>) · 어떻게 보이게(<span data-k="o">O</span>) · 내 수준에 맞게(<span data-k="m">M</span>) · 선생님처럼 설명하고(<span data-k="p2">P</span>) · 확인까지(<span data-k="t">T</span>)!
+    </div>
+
+    <div class="compare">
+      <h2>나쁜 프롬프트와 좋은 프롬프트</h2>
+      <p class="lead" style="margin-bottom:0">같은 숫자 맞히기 게임을 부탁해도, 프롬프트에 따라 결과가 완전히 달라집니다.</p>
+      <div class="compare-grid">
+        <div class="box">
+          <h3><span class="tag bad">나쁜 프롬프트</span></h3>
+          <div class="bad-text">숫자 맞히기 게임 만들어줘.</div>
+          <p style="font-weight:700;font-size:15px;margin-bottom:6px">AI가 마음대로 정해 버리는 것들</p>
+          <ul class="why">
+            <li>숫자의 범위와 게임 규칙</li>
+            <li>화면에 나오는 문구와 형식</li>
+            <li>아직 배우지 않은 함수, 클래스 같은 어려운 문법 사용</li>
+            <li>설명 없이 코드만 제시</li>
+            <li>글자를 입력하면 프로그램이 멈추는 문제</li>
+          </ul>
+        </div>
+        <div id="goodPrompt"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIORITY -->
+<section id="priority">
+  <div class="wrap">
+    <h2>코딩 프롬프트의 우선순위: 목적(P)이 먼저입니다</h2>
+    <p class="lead">일반적인 프롬프트 작성법에서는 "너는 ○○ 전문가야"처럼 Persona를 맨 앞에 쓰라고 안내하는 경우가 많습니다. 하지만 AI가 무엇을 만들어야 하는지 모르면 어떤 역할을 맡든 엉뚱한 코드가 나옵니다. 반대로 목적과 조건만 분명하면 Persona가 없어도 원하는 프로그램은 만들어집니다.</p>
+
+    <div class="tiers">
+      <div class="tier">
+        <div class="tname">① 핵심<small>반드시 써야 해요</small></div>
+        <div class="chips"><span class="chip" data-k="p1"><b>P</b>목적</span><span class="chip" data-k="r"><b>R</b>기능·조건</span></div>
+        <p class="miss">원하는 프로그램 자체가 만들어지지 않습니다.</p>
+      </div>
+      <div class="tier">
+        <div class="tname">② 품질<small>꼭 쓰기를 권해요</small></div>
+        <div class="chips"><span class="chip" data-k="o"><b>O</b>결과 모습</span><span class="chip" data-k="m"><b>M</b>나의 수준·환경</span></div>
+        <p class="miss">작동은 하지만 결과가 다르거나, 이해할 수 없는 코드가 나옵니다.</p>
+      </div>
+      <div class="tier">
+        <div class="tname">③ 보완<small>있으면 더 좋아요</small></div>
+        <div class="chips"><span class="chip" data-k="p2"><b>P</b>Persona</span><span class="chip" data-k="t"><b>T</b>확인·점검</span></div>
+        <p class="miss">설명이 불친절하거나, 예외 상황에서 프로그램이 멈춥니다.</p>
+      </div>
+    </div>
+
+    <h3>Persona를 다섯 번째에 둔 이유</h3>
+    <div class="reasons">
+      <div>
+        <h4>조건이 결과를 좌우합니다</h4>
+        <p>"너는 20년 경력의 파이썬 전문가야"라고 써도 코드가 더 정확해지지는 않습니다. 오히려 아직 배우지 않은 고급 문법이 나올 수 있습니다.</p>
+      </div>
+      <div>
+        <h4>구체적인 지시가 더 확실합니다</h4>
+        <p>"친절하게"는 AI마다 해석이 다르지만, "모든 줄에 한글 주석"은 해석의 여지가 없습니다. 그래서 Persona에는 한글 주석, 짧은 실행 순서 요약처럼 구체적인 설명 방식을 함께 씁니다.</p>
+      </div>
+      <div>
+        <h4>자세한 설명은 코드를 읽은 뒤에 묻습니다</h4>
+        <p>어느 부분이 어려운지는 코드를 읽어 봐야 알 수 있습니다. 첫 프롬프트에서는 기본 설명만 요청하고, 이해가 안 되는 줄은 후속 질문으로 묻습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HEALTH -->
+<section id="health">
+  <div class="wrap">
+    <h2>건강 관리 리포트 생성기</h2>
+    <p class="lead">문제를 먼저 읽고, 문제의 조건이 예제 프롬프트의 어느 요소로 옮겨졌는지 찾아보세요.</p>
+
+    <div class="two">
+      <div>
+        <div class="problem">
+          <h3>문제</h3>
+          <p>우리는 학교나 직장에서 매년 건강검진을 받는다. 검진 결과지에는 나의 키와 몸무게를 바탕으로 계산된 '체질량지수(BMI)'와 그에 따른 '비만도 판정'이 적혀 있다. 다음 조건을 만족하는 '건강 관리 리포트 생성기'를 작성해야 한다.</p>
+          <ol>
+            <li>사용자로부터 이름, 키(cm), 몸무게(kg)를 입력받는다.</li>
+            <li>함수를 사용하여 BMI를 계산하고, 지수에 따라 '저체중, 정상, 과체중, 비만' 중 하나로 판정한다.</li>
+            <li>계산된 모든 정보(이름, 키, 몸무게, BMI, 판정 결과)를 'health_report.csv' 파일에 차곡차곡 저장한다.</li>
+            <li><span class="formula">BMI = 체중(kg) / (키(cm) / 100)²</span></li>
+          </ol>
+          <div class="crit">판정 기준: BMI &lt; 18.5는 저체중, 18.5 ≤ BMI &lt; 23은 정상, 23 ≤ BMI &lt; 25는 과체중, 그 이상은 비만</div>
+        </div>
+        <div id="healthPrompt"></div>
+      </div>
+      <aside class="side">
+        <div class="note">
+          <h3>숨은 조건을 찾아 썼어요</h3>
+          <p>문제에는 없지만 R에 추가한 조건이 있습니다. "기록이 지워지지 않고 계속 추가", "제목 줄은 처음 한 번만", "엑셀에서 한글이 깨지지 않게"를 빠뜨리면 AI가 덮어쓰기로 저장하거나 실행할 때마다 제목 줄을 반복하는 코드를 만들기 쉽습니다. 잘못된 값을 넣었을 때 다시 입력받는 동작도 프로그램의 기능이므로 R 5번에 적었습니다.</p>
+        </div>
+        <h3>결과 확인용 데이터</h3>
+        <p>AI가 만든 코드를 실행해서 아래와 같이 나오는지 확인하세요.</p>
+        <div class="tablewrap">
+        <table>
+          <thead><tr><th>키</th><th>몸무게</th><th>BMI</th><th>판정</th></tr></thead>
+          <tbody>
+            <tr><td>160</td><td>45</td><td class="num">17.58</td><td>저체중</td></tr>
+            <tr><td>170</td><td>65</td><td class="num">22.49</td><td>정상</td></tr>
+            <tr><td>170</td><td>68</td><td class="num">23.53</td><td>과체중</td></tr>
+            <tr><td>175</td><td>80</td><td class="num">26.12</td><td>비만</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div id="healthFU"></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYZER -->
+<section id="analyzer">
+  <div class="wrap">
+    <h2>스마트 건강 분석기</h2>
+    <p class="lead">앞에서 만든 프로그램에 기능을 더하는 후속 프롬프트입니다. 기존 코드와 연결하는 방법에 주목하세요.</p>
+
+    <div class="two">
+      <div>
+        <div class="problem">
+          <h3>문제</h3>
+          <p>'health_report.csv' 파일을 다시 읽어와서, 특정 조건에 맞는 사람만 골라내고 전체 평균까지 계산해주는 '스마트 건강 분석기'로 프로그램을 업그레이드해 보자.</p>
+        </div>
+        <div id="analyzerPrompt"></div>
+      </div>
+      <aside class="side">
+        <div class="note">
+          <h3>입력하기 전에</h3>
+          <p>P(목적)의 "(아래에 지금까지 만든 코드를 붙여넣을게.)" 다음 줄에 건강 관리 리포트 생성기 코드를 실제로 붙여넣은 뒤 AI에게 보내세요.</p>
+        </div>
+        <div class="note">
+          <h3>왜 새 코드 셀일까?</h3>
+          <p>따로 요청하지 않으면 AI는 기존 코드를 고친 버전을 줍니다. 새 셀에 독립적으로 작동하는 코드를 받으면 1단계 코드가 그대로 남아 비교하고 되돌리기 쉽습니다.</p>
+        </div>
+        <h3>결과 확인용 데이터</h3>
+        <p>아래 4명을 먼저 저장해 두고 분석 결과를 비교하세요.</p>
+        <div class="tablewrap">
+        <table>
+          <thead><tr><th>이름</th><th>키</th><th>몸무게</th><th>BMI</th></tr></thead>
+          <tbody>
+            <tr><td>박하늘</td><td>160</td><td>45</td><td class="num">17.58</td></tr>
+            <tr><td>김부산</td><td>170</td><td>65</td><td class="num">22.49</td></tr>
+            <tr><td>이바다</td><td>170</td><td>68</td><td class="num">23.53</td></tr>
+            <tr><td>최산들</td><td>175</td><td>80</td><td class="num">26.12</td></tr>
+            <tr><th>평균</th><th>168.75</th><th>64.50</th><th class="num">22.43</th></tr>
+          </tbody>
+        </table>
+        </div>
+        <div id="analyzerFU"></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- BUILDER -->
+<section id="builder">
+  <div class="wrap">
+    <h2>프롬프트 만들기</h2>
+    <p class="lead">연습할 문제를 탭에서 고르고, 왼쪽 입력창을 하나씩 채우면 오른쪽에 프롬프트가 완성됩니다. 완성된 프롬프트를 복사해서 AI에게 보내세요. 탭마다 작성한 내용은 이 브라우저에 따로 저장됩니다.</p>
+
+    <div class="tabs" id="tabs" role="tablist" aria-label="연습 문제"></div>
+
+    <div id="builderPanel" role="tabpanel">
+      <div class="task" id="task"></div>
+
+      <div class="toolbar">
+        <button class="btn" id="buildAll" type="button" hidden>선택한 내용으로 P·R·O 채우기</button>
+        <button class="btn ghost" id="loadExample" type="button">예시 넣기</button>
+        <button class="btn ghost" id="clearAll" type="button">모두 지우기</button>
+        <div class="progress" aria-live="polite"><div class="dots" id="dots"></div><span id="progressText">6개 중 0개 작성</span></div>
+      </div>
+
+      <div class="builder">
+        <form id="form" onsubmit="return false"></form>
+        <div class="preview">
+          <div class="pblock">
+            <div class="pblock-head"><strong>완성된 프롬프트</strong><button class="btn sm" id="copyBuilt" type="button">프롬프트 복사</button></div>
+            <div class="pblock-body" id="builtBody"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="after" id="after"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <strong>2026년 2학기 인공지능과 디지털 사고</strong>
+    <span>prof. 김지연</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

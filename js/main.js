@@ -77,10 +77,10 @@ renderSideFollowups("analyzerFU", ANALYZER_FU.concat(COMMON_FU));
 
 /* ---------- 프롬프트 만들기 ---------- */
 const STORE = "prompt-builder-v2";
-let state = { tab: PRACTICE[0].id, drafts: {} };
+let state = { tab: PRACTICE[0].id, drafts: {}, picks: {} };
 try{
   const saved = JSON.parse(localStorage.getItem(STORE) || "null");
-  if(saved && saved.drafts) state = { tab: saved.tab || state.tab, drafts: saved.drafts };
+  if(saved && saved.drafts) state = { tab: saved.tab || state.tab, drafts: saved.drafts, picks: saved.picks || {} };
 }catch(_){}
 if(!PRACTICE.some(p => p.id === state.tab)) state.tab = PRACTICE[0].id;
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(_){} }
@@ -94,10 +94,26 @@ const progressText = document.getElementById("progressText");
 const loadBtn = document.getElementById("loadExample");
 const afterEl = document.getElementById("after");
 
+/* T 입력창 아래: 기능·조건에 따라 넣을 관점을 고르는 안내 */
+function tGuideHTML(){
+  return `<details class="t-guide">
+    <summary>T에 넣을 관점 고르기</summary>
+    <p>위에 적은 기능·조건을 다시 읽고, 해당하는 관점만 T에 넣으세요.</p>
+    <table>
+      <thead><tr><th>기능·조건에 이런 것이 있으면</th><th>T에 넣을 관점</th></tr></thead>
+      <tbody>${T_GUIDE.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody>
+    </table>
+  </details>`;
+}
+
 form.innerHTML = EL.map(e =>
   `<div class="field" data-k="${e.k}">
      <label for="f-${e.k}"><span class="plabel">${esc(e.label)}</span><span class="hint">${e.q}</span></label>
      <textarea id="f-${e.k}" rows="3" placeholder="${esc(e.ph)}"></textarea>
+     ${e.k === "t" ? tGuideHTML() : ""}
+     ${e.k === "o" ? '<div id="oDesign"></div>' : ""}
+     ${e.k === "r" ? '<div id="rContent"></div>' : ""}
+     ${e.k === "p1" ? '<div id="pPick"></div>' : ""}
    </div>`).join("");
 const tas = Object.fromEntries(EL.map(e => [e.k, document.getElementById("f-" + e.k)]));
 dots.innerHTML = EL.map(e => `<i data-k="${e.k}"></i>`).join("");
@@ -123,8 +139,242 @@ function renderTask(){
   const note = p.note ? `<p style="margin-top:10px;font-size:15px">${esc(p.note)}</p>` : "";
   taskEl.innerHTML = `<h3>${esc(p.name)}</h3><p>${esc(p.problem.intro)}</p>${items}${note}${goal}`;
   renderAfter(p);
+  renderCard(p);
   loadBtn.hidden = !p.example;
   loadBtn.textContent = p.example ? `${p.name} 예시 넣기` : "";
+}
+
+/* 코드를 받은 다음에 할 일 (탭에 after가 있으면 그것을 쓴다) */
+const DEFAULT_AFTER = [
+  "O에 적은 실행 화면 예시를 그대로 입력해 결과가 같은지 직접 확인합니다.",
+  "AI가 제안한 테스트 표의 값을 차례로 넣어 결과를 비교하고, 기대 결과 중 하나 이상은 계산기로 직접 확인합니다.",
+  "주석과 실행 순서 요약을 읽으며 이해가 안 되는 줄에 표시합니다.",
+  "표시한 줄이나 결과가 다른 부분을 그대로 인용해서 AI에게 후속 질문을 합니다."
+];
+
+/* =========================================================
+   Streamlit 디지털 명함 만들기 도우미 (builder:"card" 탭에서만 보인다)
+   - P 입력창 아래: 용도 고르기  → P에 넣기
+   - R 입력창 아래: 내용 고르기 + 내 정보 채우기 → R에 넣기
+   - O 입력창 아래: 화면 구성·디자인 고르기 → O에 넣기
+   고른 항목과 입력한 정보는 탭별로 이 브라우저에 저장된다.
+   ========================================================= */
+const pPick = document.getElementById("pPick");
+const rContent = document.getElementById("rContent");
+const oDesign = document.getElementById("oDesign");
+const buildAllBtn = document.getElementById("buildAll");
+const allItems = () => CARD_CONTENT.flatMap(g => g.items);
+
+function pick(p){
+  const pk = state.picks[p.id] = state.picks[p.id] || {};
+  if(!pk.sel) pk.sel = allItems().filter(it => it.base).map(it => it.id);
+  if(!pk.vals) pk.vals = {};
+  if(!pk.p) pk.p = cardDefaultSel(CARD_P);
+  if(!pk.o) pk.o = cardDefaultSel(CARD_O);
+  if(!pk.areas) pk.areas = {};
+  /* 나중에 추가된 선택 항목이 있으면 기본값을 채운다 */
+  CARD_P.forEach(g => { if(!pk.p[g.id]) pk.p[g.id] = (g.def || []).slice(); });
+  CARD_O.forEach(g => { if(!pk.o[g.id]) pk.o[g.id] = (g.def || []).slice(); });
+  return pk;
+}
+const myName = pk => ((pk.vals.name || {}).v || "").trim();
+
+/* 선택 칩 묶음 하나 */
+function choiceHTML(g, selArr){
+  return `<div class="dgroup" data-g="${g.id}">
+    <h5>${esc(g.title)}</h5>
+    <div class="dopts">${g.options.map((o, i) => `<button type="button" class="dopt${g.emoji ? " solo" : ""}" aria-pressed="${selArr.includes(i)}" data-i="${i}">
+      ${o.sw ? `<span class="sw">${o.sw.map(c => `<i style="background:${c}"></i>`).join("")}</span>` : ""}
+      <span class="dl">${esc(o.label)}</span>${o.sub ? `<span class="ds">${esc(o.sub)}</span>` : ""}</button>`).join("")}</div>
+  </div>`;
+}
+/* 칩을 눌렀을 때 선택값 바꾸기 (여러 개 선택 묶음은 켜고 끄기, 하나만 고르는 묶음은 바꾸기) */
+function toggleChoice(selObj, g, i){
+  const cur = selObj[g.id] || [];
+  if(g.multi) selObj[g.id] = cur.includes(i) ? cur.filter(x => x !== i) : cur.concat(i).sort((a, b) => a - b);
+  else selObj[g.id] = [i];
+}
+
+function panel(cls, title, intro, inner, foot){
+  return `<details class="design-pick ${cls}" open>
+    <summary>${title}</summary><p>${intro}</p>
+    <div class="pick-inner">${inner}</div>
+    <div class="dfoot">${foot}</div>
+  </details>`;
+}
+
+/* ---------- P: 용도 고르기 ---------- */
+function pInner(pk){ return CARD_P.map(g => choiceHTML(g, pk.p[g.id] || [])).join(""); }
+function renderP(pk){
+  pPick.innerHTML = panel("p-pick", "용도 고르기", "명함을 어디에, 누구에게 보여줄지 고르면 목적 문장이 만들어집니다.",
+    pInner(pk), `<span class="dcount">${esc(buildCardP(pk.p).replace("\n", " "))}</span><button type="button" class="btn sm" data-act="p">P에 넣기</button>`);
+}
+pPick.addEventListener("click", e => {
+  const p = practice(); if(p.builder !== "card") return;
+  const pk = pick(p);
+  const b = e.target.closest(".dopt");
+  if(b){
+    toggleChoice(pk.p, CARD_P.find(g => g.id === b.closest(".dgroup").dataset.g), +b.dataset.i);
+    save(); renderP(pk); return;
+  }
+  if(e.target.dataset.act === "p") putInto({p1: buildCardP(pk.p)}, "목적 문장을 P에 넣었습니다");
+});
+
+/* ---------- R: 내용 고르기 + 내 정보 채우기 ---------- */
+function renderR(pk){
+  const groups = CARD_CONTENT.map(g => `<div class="dgroup">
+      <h5>${esc(g.group)}</h5>${g.note ? `<p class="gnote">${esc(g.note)}</p>` : ""}
+      <div class="dopts">${g.items.map(it => `<button type="button" class="dopt" aria-pressed="${pk.sel.includes(it.id)}" data-id="${it.id}">
+        <span class="dl">${esc(it.label)}${it.base ? ' <span class="badge">기본</span>' : ""}</span><span class="ds">${esc(it.sub)}</span></button>`).join("")}</div>
+    </div>`).join("");
+  rContent.innerHTML = panel("content-pick", "내용 고르기",
+    `명함에 보여줄 내용을 고르고 <b>내 정보</b>를 채우세요. <span class="badge">기본</span> 표시는 꼭 넣기를 권하는 항목입니다.`,
+    groups + `<div class="myinfo"><h5>내 정보 채우기</h5><div id="infoFields"></div></div>`,
+    `<span class="dcount" id="cCount"></span>
+     <button type="button" class="btn ghost sm" data-act="base">기본 항목만</button>
+     <button type="button" class="btn sm" data-act="r">R에 넣기</button>`);
+  renderInfo(pk);
+}
+
+function renderInfo(pk){
+  const chosen = allItems().filter(it => pk.sel.includes(it.id));
+  document.getElementById("infoFields").innerHTML = chosen.length ? chosen.map(it => `<div class="info" data-id="${it.id}">
+    <div class="info-head">${esc(it.label)}</div>
+    ${it.fields.length ? it.fields.map(f => {
+      const v = esc(((pk.vals[it.id] || {})[f.k]) || "");
+      const id = `ci-${it.id}-${f.k}`;
+      const hide = it.fields.length === 1 && f.label === it.label ? ' class="sr"' : "";
+      return `<label for="${id}"${hide}>${esc(f.label)}</label>` + (f.area
+        ? `<textarea id="${id}" data-id="${it.id}" data-k="${f.k}" rows="3" placeholder="${esc(f.ph)}">${v}</textarea>`
+        : `<input id="${id}" type="text" data-id="${it.id}" data-k="${f.k}" placeholder="${esc(f.ph)}" value="${v}">`);
+    }).join("") : '<p class="nofield">입력할 내용이 없습니다. 고르기만 하면 됩니다.</p>'}
+  </div>`).join("") : '<p class="nofield">위에서 명함에 넣을 내용을 골라 주세요.</p>';
+  updateCount(pk);
+}
+
+function countEmpty(pk){
+  let n = 0;
+  allItems().filter(it => pk.sel.includes(it.id)).forEach(it =>
+    it.fields.forEach(f => { if(!(((pk.vals[it.id] || {})[f.k]) || "").trim()) n++; }));
+  return n;
+}
+function updateCount(pk){
+  const empty = countEmpty(pk);
+  const el = document.getElementById("cCount");
+  if(el) el.textContent = `${pk.sel.length}개 선택` + (empty ? ` · 빈 칸 ${empty}개` : " · 모두 채움");
+}
+
+rContent.addEventListener("click", e => {
+  const p = practice(); if(p.builder !== "card") return;
+  const pk = pick(p);
+  const b = e.target.closest(".dopt");
+  if(b){
+    const set = new Set(pk.sel);
+    set.has(b.dataset.id) ? set.delete(b.dataset.id) : set.add(b.dataset.id);
+    pk.sel = allItems().map(it => it.id).filter(x => set.has(x));   /* 화면 순서대로 정렬 */
+    save();
+    b.setAttribute("aria-pressed", set.has(b.dataset.id));
+    renderInfo(pk); renderO(pk);   /* 고른 내용이 바뀌면 O의 영역 배치와 표현 방식도 바뀐다 */
+    return;
+  }
+  const act = e.target.dataset.act;
+  if(act === "base"){
+    pk.sel = allItems().filter(it => it.base).map(it => it.id);
+    save(); renderR(pk); renderO(pk);
+    toast("기본 항목만 남겼습니다. 입력한 내용은 지워지지 않습니다");
+  }
+  if(act === "r"){
+    if(!pk.sel.length){ toast("먼저 넣을 내용을 하나 이상 고르세요"); return; }
+    const empty = countEmpty(pk);
+    putInto({r: buildCardR(pk.sel, pk.vals)}, empty ? `R에 넣었습니다. 빈 칸 ${empty}개는 [ ] 표시로 남았습니다` : "내 정보를 R에 넣었습니다");
+  }
+});
+
+rContent.addEventListener("input", e => {
+  const el = e.target;
+  if(!el.dataset || !el.dataset.id) return;
+  const pk = pick(practice());
+  (pk.vals[el.dataset.id] = pk.vals[el.dataset.id] || {})[el.dataset.k] = el.value;
+  save(); updateCount(pk);
+});
+
+/* ---------- O: 화면 구성과 디자인 고르기 ---------- */
+function renderO(pk){
+  const s = {frame: CARD_O[0].options[(pk.o.frame || [0])[0]].v};
+  const chosen = cardChosen(pk.sel);
+  const has = ids => chosen.some(it => ids.includes(it.id));
+  const visible = g => (!g.when || g.when(s)) && (!g.need || has(g.need));
+  const secs = [...new Set(CARD_O.map(g => g.sec))];
+
+  /* 영역별 내용 배치: R에서 고른 내용마다 어느 영역에 둘지 고른다 */
+  const placed = chosen.filter(it => !CARD_NO_AREA.includes(it.id));
+  const areaHTML = `<div class="dgroup areas">
+    <h5>영역별 내용 배치</h5>
+    <p class="gnote2">R에서 고른 내용을 어느 영역에 둘지 고르세요. 이름은 항상 첫 화면 제목입니다.</p>
+    ${placed.length ? `<div class="area-list">${placed.map(it => {
+      const cur = pk.areas[it.id] || CARD_AREA_DEFAULT[it.id] || "body";
+      return `<div class="area-row" data-id="${it.id}"><span class="area-name">${esc(it.label)}</span>
+        <span class="area-opts">${CARD_AREAS.map(a => `<button type="button" class="area-btn" aria-pressed="${a.v === cur}" data-a="${a.v}">${esc(a.label(s))}</button>`).join("")}</span></div>`;
+    }).join("")}</div>` : '<p class="nofield">R에서 내용을 먼저 고르면 여기에 나타납니다.</p>'}
+  </div>`;
+
+  const inner = secs.map(sec => {
+    const groups = CARD_O.filter(g => g.sec === sec && visible(g));
+    if(!groups.length) return "";
+    return `<div class="osec"><h4>${esc(sec)}</h4>${groups.map(g => choiceHTML(g, pk.o[g.id] || [])).join("")}${sec === "화면 틀" ? areaHTML : ""}</div>`;
+  }).join("");
+
+  oDesign.innerHTML = panel("o-pick", "화면 구성·디자인 고르기",
+    "화면 틀, 영역별 내용, 표현 방식, 꾸밈을 고르면 O 문장이 만들어집니다. 모든 항목에 기본 선택이 있으니 바꾸고 싶은 것만 고르세요.",
+    inner, `<span class="dcount">정보 표현 방식은 R에서 고른 내용에 맞춰 나타납니다</span>
+      <button type="button" class="btn sm" data-act="o">O에 넣기</button>`);
+}
+
+oDesign.addEventListener("click", e => {
+  const p = practice(); if(p.builder !== "card") return;
+  const pk = pick(p);
+  const b = e.target.closest(".dopt");
+  if(b){
+    toggleChoice(pk.o, CARD_O.find(g => g.id === b.closest(".dgroup").dataset.g), +b.dataset.i);
+    save(); keepScroll(() => renderO(pk)); return;
+  }
+  const a = e.target.closest(".area-btn");
+  if(a){
+    pk.areas[a.closest(".area-row").dataset.id] = a.dataset.a;
+    save(); keepScroll(() => renderO(pk)); return;
+  }
+  if(e.target.dataset.act === "o") putInto({o: cardO(pk)}, "화면 구성과 디자인을 O에 넣었습니다");
+});
+
+const cardO = pk => buildCardO(pk.o, cardChosen(pk.sel), pk.areas, myName(pk));
+
+/* 다시 그릴 때 화면이 위아래로 튀지 않게 한다 */
+function keepScroll(fn){
+  const y = window.scrollY; fn(); window.scrollTo(0, y);
+}
+
+/* 고른 결과를 입력창에 넣는다 (기존 내용이 있으면 '되돌리기' 제공) */
+function putInto(part, msg){
+  const data = Object.assign(current(), part);
+  replaceWith(data, msg);
+}
+
+/* ---------- 한 번에 채우기 ---------- */
+buildAllBtn.addEventListener("click", () => {
+  const p = practice(); if(p.builder !== "card") return;
+  const pk = pick(p);
+  if(!pk.sel.length){ toast("R에서 넣을 내용을 먼저 고르세요"); return; }
+  const empty = countEmpty(pk);
+  putInto({p1: buildCardP(pk.p), r: buildCardR(pk.sel, pk.vals), o: cardO(pk)},
+    empty ? `P·R·O를 채웠습니다. R의 빈 칸 ${empty}개를 확인하세요` : "P·R·O를 모두 채웠습니다");
+});
+
+function renderCard(p){
+  const on = p.builder === "card";
+  buildAllBtn.hidden = !on;
+  if(!on){ pPick.innerHTML = rContent.innerHTML = oDesign.innerHTML = ""; return; }
+  const pk = pick(p);
+  renderP(pk); renderR(pk); renderO(pk);
 }
 
 /* 코드를 받은 다음에 할 일 + 이 탭의 후속 질문 예시 */
@@ -132,12 +382,7 @@ function renderAfter(p){
   const list = (p.followups || []).concat(COMMON_FU);
   afterEl.innerHTML = `
     <h3>코드를 받은 다음에는</h3>
-    <ol class="steps">
-      <li>O에 적은 실행 화면 예시를 그대로 입력해 결과가 같은지 직접 확인합니다.</li>
-      <li>AI가 제안한 테스트 표의 값을 차례로 넣어 결과를 비교하고, 기대 결과 중 하나 이상은 계산기로 직접 확인합니다.</li>
-      <li>주석과 실행 순서 요약을 읽으며 이해가 안 되는 줄에 표시합니다.</li>
-      <li>표시한 줄이나 결과가 다른 부분을 그대로 인용해서 AI에게 후속 질문을 합니다.</li>
-    </ol>
+    <ol class="steps">${(p.after || DEFAULT_AFTER).map(t => `<li>${esc(t)}</li>`).join("")}</ol>
     ${list.length ? `<h4>${p.id === "free" ? "후속 질문 틀" : esc(p.name) + " 후속 질문 예시"}</h4>
     <p class="fu-hint">질문은 코드를 읽은 뒤에 떠오른 것을 쓰는 것이 가장 좋습니다. 무엇을 물어야 할지 막막할 때 참고하세요.</p>
     ${followupHTML(list)}` : ""}`;
@@ -164,7 +409,7 @@ function setDraft(data){
 
 function selectTab(id, focus){
   state.tab = id; save();
-  renderTabs(); renderTask(); fill(state.drafts[id]);
+  renderTabs(); renderTask(); fill(state.drafts[id] || practice().defaults);
   if(focus) document.getElementById("tab-" + id).focus();
 }
 
@@ -208,11 +453,32 @@ loadBtn.addEventListener("click", () => {
 });
 document.getElementById("clearAll").addEventListener("click", () => {
   if(!hasText(current())){ toast("지울 내용이 없습니다"); return; }
-  replaceWith({}, "모두 지웠습니다");
+  const d = practice().defaults;
+  replaceWith(d || {}, d ? "모두 지웠습니다. M·P·T 기본값은 다시 넣었습니다" : "모두 지웠습니다");
 });
 document.getElementById("copyBuilt").addEventListener("click", () => copy(toText(current())));
 
 selectTab(state.tab);
+
+/* ---------- 좁은 화면: 사이드바 메뉴 ---------- */
+const navEl = document.querySelector(".nav");
+const menuBtn = document.getElementById("menuBtn");
+const navBackdrop = document.getElementById("navBackdrop");
+function setMenu(open){
+  navEl.classList.toggle("open", open);
+  document.body.classList.toggle("menu-open", open);
+  menuBtn.setAttribute("aria-expanded", open);
+  menuBtn.setAttribute("aria-label", open ? "메뉴 닫기" : "메뉴 열기");
+  if(open) navEl.querySelector("#navMenu a").focus();
+}
+menuBtn.addEventListener("click", () => setMenu(!navEl.classList.contains("open")));
+navBackdrop.addEventListener("click", () => setMenu(false));
+document.querySelectorAll("#navMenu a").forEach(a => a.addEventListener("click", () => setMenu(false)));
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && navEl.classList.contains("open")){ setMenu(false); menuBtn.focus(); }
+});
+/* 화면이 다시 넓어지면 열린 메뉴를 닫는다 */
+matchMedia("(min-width: 961px)").addEventListener("change", m => { if(m.matches) setMenu(false); });
 
 /* ---------- 메뉴 강조 ---------- */
 const links = [...document.querySelectorAll(".nav a.link")];

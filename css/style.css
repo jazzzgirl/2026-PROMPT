@@ -86,7 +86,7 @@ a {
 }
 
 .wrap {
-  max-width: 1120px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -618,8 +618,8 @@ p {
 
 .two {
   display: grid;
-  grid-template-columns: minmax(0,1fr) 300px;
-  gap: 32px;
+  grid-template-columns: minmax(0,1fr) 340px;
+  gap: 40px;
   align-items: start;
 }
 
@@ -1050,4 +1050,478 @@ footer strong {
   .after {
     padding: 20px;
   }
+}
+
+/* T 입력창 아래 관점 고르기 안내 */
+.t-guide {
+  margin-top: 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14.5px;
+}
+
+.t-guide summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--c-t);
+}
+
+.t-guide p {
+  margin: 10px 0 8px;
+  color: var(--ink-2);
+}
+
+.t-guide table {
+  font-size: 14px;
+}
+
+.t-guide td:last-child {
+  font-weight: 600;
+}
+
+/* ---------- 좁은 화면 사이드바 메뉴 ---------- */
+.menu-btn,
+.nav-backdrop,
+.nav .menu-head {
+  display: none;
+}
+
+@media (max-width:960px) {
+  .nav {
+    backdrop-filter: none;
+    background: #fff;
+  }
+  .menu-btn {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    padding: 0 11px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    z-index: 45;
+  }
+  .menu-btn span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--ink);
+    transition: transform .2s, opacity .2s;
+  }
+  .nav.open .menu-btn span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav.open .menu-btn span:nth-child(2) { opacity: 0; }
+  .nav.open .menu-btn span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .nav ul {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    width: min(300px, 84vw);
+    margin: 0;
+    padding: calc(env(safe-area-inset-top,0px) + 8px) 16px calc(env(safe-area-inset-bottom,0px) + 24px);
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    background: #fff;
+    border-left: 1px solid var(--line);
+    box-shadow: -12px 0 32px rgba(27,36,51,.12);
+    transform: translateX(105%);
+    visibility: hidden;
+    transition: transform .25s ease, visibility 0s .25s;
+  }
+  .nav.open ul {
+    transform: none;
+    visibility: visible;
+    transition: transform .25s ease;
+  }
+  .nav .menu-head {
+    display: flex;
+    align-items: center;
+    height: calc(var(--nav-h) - 8px);
+    padding: 0 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    font-weight: 800;
+    font-size: 17px;
+  }
+  .nav a.link {
+    font-size: 17px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    white-space: normal;
+    border-left: 4px solid var(--c);
+  }
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(27,36,51,.42);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .nav.open .nav-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  body.menu-open {
+    overflow: hidden;
+  }
+}
+
+/* ---------- 디자인 고르기 (O 입력창 아래) ---------- */
+.design-pick {
+  --pc: var(--c-o);
+  margin-top: 10px;
+  border: 1.5px solid color-mix(in srgb,var(--pc) 45%,#fff);
+  background: color-mix(in srgb,var(--pc) 5%,#fff);
+  border-radius: 12px;
+  padding: 12px 16px 14px;
+  font-size: 14.5px;
+}
+
+.design-pick summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--pc);
+  font-size: 15.5px;
+}
+
+.design-pick > p {
+  margin: 8px 0 4px;
+  color: var(--ink-2);
+}
+
+.dgroup {
+  margin-top: 14px;
+}
+
+.dgroup h5 {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.dopts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dopt {
+  font: inherit;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+
+.dopt:hover {
+  border-color: var(--pc);
+}
+
+.dopt[aria-pressed="true"] {
+  border-color: var(--pc);
+  background: color-mix(in srgb,var(--pc) 14%,#fff);
+  box-shadow: inset 0 0 0 1px var(--pc);
+}
+
+.dopt .dl {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.dopt[aria-pressed="true"] .dl::before {
+  content: "✓ ";
+  color: var(--pc);
+}
+
+.dopt .ds {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.dopt .sw {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.dopt .sw i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+}
+
+.dfoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed color-mix(in srgb,var(--pc) 40%,#fff);
+}
+
+.dfoot .dcount {
+  margin-right: auto;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.content-pick {
+  --pc: var(--c-r);
+}
+
+.design-pick .badge {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  padding: 0 6px;
+  border-radius: 6px;
+  color: #fff;
+  background: var(--pc);
+  vertical-align: 1px;
+}
+
+.dgroup .gnote {
+  margin: -4px 0 8px;
+  font-size: 13.5px;
+  color: #B4363B;
+}
+
+.myinfo {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed color-mix(in srgb,var(--pc) 40%,#fff);
+}
+
+.myinfo h5 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--pc);
+}
+
+#infoFields {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: 10px;
+}
+
+.info {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px 12px;
+}
+
+.info-head {
+  font-weight: 800;
+  font-size: 14.5px;
+  margin-bottom: 4px;
+}
+
+.info label {
+  display: block;
+  margin: 6px 0 3px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.info input,
+.info textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  padding: 7px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  resize: vertical;
+}
+
+.info input:focus,
+.info textarea:focus {
+  outline: none;
+  border-color: var(--pc);
+  box-shadow: 0 0 0 3px color-mix(in srgb,var(--pc) 18%,transparent);
+}
+
+.info input::placeholder,
+.info textarea::placeholder {
+  color: #A3AAB6;
+}
+
+.nofield {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- 명함 도우미: P 용도, O 화면 구성 ---------- */
+.p-pick {
+  --pc: var(--c-p1);
+}
+
+.o-pick {
+  --pc: var(--c-o);
+}
+
+.osec {
+  margin-top: 18px;
+  padding-top: 4px;
+}
+
+.osec + .osec {
+  border-top: 1px dashed color-mix(in srgb,var(--pc) 40%,#fff);
+  padding-top: 14px;
+}
+
+.osec h4 {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--pc);
+}
+
+.dopt.solo {
+  min-width: 44px;
+  align-items: center;
+}
+
+.dopt.solo .dl {
+  font-size: 18px;
+}
+
+.dopt.solo[aria-pressed="true"] .dl::before {
+  content: none;
+}
+
+.gnote2 {
+  margin: -4px 0 10px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.area-list {
+  display: grid;
+  gap: 6px;
+}
+
+.area-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+}
+
+.area-name {
+  font-weight: 700;
+  font-size: 14.5px;
+  min-width: 128px;
+}
+
+.area-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.area-btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.area-btn:hover {
+  border-color: var(--pc);
+}
+
+.area-btn[aria-pressed="true"] {
+  background: var(--pc);
+  border-color: var(--pc);
+  color: #fff;
+}
+
+.p-pick .dfoot .dcount {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+@media (max-width:640px) {
+  .toast {
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* 내 정보 채우기: 입력창이 카드 밖으로 나가지 않게 */
+#infoFields > .info {
+  min-width: 0;
+}
+
+.field .info input,
+.field .info textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+/* 넓은 화면(1200px)에서 읽기 편하도록 설명 문단 줄 길이 제한 */
+.lead {
+  max-width: 860px;
+}
+
+.builder {
+  gap: 40px;
 }
