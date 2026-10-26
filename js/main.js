@@ -140,6 +140,9 @@ function renderTask(){
   taskEl.innerHTML = `<h3>${esc(p.name)}</h3><p>${esc(p.problem.intro)}</p>${items}${note}${goal}`;
   renderAfter(p);
   renderCard(p);
+  renderTheme(p);
+  /* 탭마다 다른 입력 안내(placeholder)를 쓸 수 있다 */
+  EL.forEach(e => { tas[e.k].placeholder = (p.ph && p.ph[e.k]) || e.ph; });
   loadBtn.hidden = !p.example;
   loadBtn.textContent = p.example ? `${p.name} 예시 넣기` : "";
 }
@@ -376,6 +379,31 @@ function renderCard(p){
   const pk = pick(p);
   renderP(pk); renderR(pk); renderO(pk);
 }
+
+/* ---------- 테마 색만 고르기 (themePick 탭: O 입력창 아래) ---------- */
+const THEME_GROUP = CARD_O.find(g => g.id === "theme");
+const THEME_RE = /- 분위기는 '[^']+'로 한다\.[\s\S]*?로 설정한다\./;
+function renderTheme(p){
+  if(!p.themePick) return;
+  const pk = state.picks[p.id] = state.picks[p.id] || {};
+  if(!pk.theme) pk.theme = (THEME_GROUP.def || [0]).slice();
+  oDesign.innerHTML = panel("o-pick", "테마 색 고르기",
+    "화면 구성은 위 O 입력창에 직접 쓰고, 테마 색만 여기서 고르세요. <b>O에 넣기</b>를 누르면 O 끝에 테마 설정 문장이 들어갑니다. 이미 넣은 테마가 있으면 새로 고른 것으로 바뀝니다.",
+    choiceHTML(Object.assign({}, THEME_GROUP, {title: "분위기"}), pk.theme),
+    `<span class="dcount"></span><button type="button" class="btn sm" data-act="theme">O에 넣기</button>`);
+}
+oDesign.addEventListener("click", e => {
+  const p = practice(); if(!p.themePick) return;
+  const pk = state.picks[p.id];
+  const b = e.target.closest(".dopt");
+  if(b){ pk.theme = [+b.dataset.i]; save(); keepScroll(() => renderTheme(p)); return; }
+  if(e.target.dataset.act === "theme"){
+    const line = "- " + THEME_GROUP.options[pk.theme[0]].t;
+    const o = current().o.replace(/\s+$/, "");
+    const next = THEME_RE.test(o) ? o.replace(THEME_RE, line) : (o ? o + "\n" : "") + line;
+    putInto({o: next}, THEME_RE.test(o) ? "O의 테마를 새로 고른 것으로 바꿨습니다" : "테마 설정을 O에 넣었습니다");
+  }
+});
 
 /* 코드를 받은 다음에 할 일 + 이 탭의 후속 질문 예시 */
 function renderAfter(p){
